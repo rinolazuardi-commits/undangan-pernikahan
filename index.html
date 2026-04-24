@@ -4,6 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Undangan Pernikahan - Rino & Intan</title>
+    
+    <!-- Meta Open Graph untuk WhatsApp -->
+    <meta property="og:title" content="Undangan Pernikahan Rino & Intan">
+    <meta property="og:description" content="Kami mengundang Anda untuk hadir di acara bahagia kami.">
+    <meta property="og:image" content="https://res.cloudinary.com/dgunhvfqj/image/upload/v1776675662/E41A9759_lwmqof.jpg">
+    <meta property="og:url" content="https://undangan-kamu.vercel.app">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -14,7 +21,6 @@
             --wa-message-out: #dcf8c6;
             --wa-dark: #121b22;
             --wa-teal: #008069;
-            /* Default tinggi jika JS belum jalan */
             --vh: 1vh;
         }
 
@@ -23,7 +29,6 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             overflow: hidden;
             margin: 0;
-            /* Menggunakan variabel vh dinamis */
             height: calc(var(--vh, 1vh) * 100);
         }
 
@@ -66,7 +71,7 @@
             to { opacity: 1; transform: scale(1); }
         }
 
-        .invite-header { padding: 30px 20px 20px; text-align: center; background: rgba(248, 249, 250, 0.5); }
+        .invite-header { padding: 30px 20px 10px; text-align: center; background: rgba(248, 249, 250, 0.5); }
         .group-icon-large { width: 100px; height: 100px; border-radius: 50%; margin: 0 auto 15px; object-fit: cover; border: 4px solid white; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
         .invite-body { padding: 0 25px 30px; text-align: center; }
         .btn-join { background-color: #00a884; color: white; width: 100%; padding: 14px; border-radius: 25px; font-weight: 600; font-size: 16px; margin-top: 20px; transition: all 0.2s; box-shadow: 0 4px 10px rgba(0, 168, 132, 0.3); }
@@ -90,7 +95,6 @@
             flex-direction: column; 
             position: relative; 
             z-index: 5; 
-            /* Memberikan ruang aman untuk home indicator pada iPhone Baru */
             padding-bottom: calc(8px + env(safe-area-inset-bottom)); 
         }
         .input-row { display: flex; align-items: center; gap: 8px; width: 100%; }
@@ -115,7 +119,7 @@
         .album-img { width: 100%; aspect-ratio: 1/1; object-fit: cover; cursor: pointer; transition: opacity 0.2s; }
 
         .payment-info { background: rgba(0,0,0,0.03); border-radius: 12px; padding: 12px; margin-top: 8px; display: flex; align-items: center; gap: 12px; border: 1px solid rgba(0,0,0,0.05); }
-        .payment-logo { width: 50px; height: auto; object-fit: contain; flex-shrink: 0; }
+        .payment-logo { width: 60px; height: auto; object-fit: contain; flex-shrink: 0; }
 
         #calendar-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 20000; display: none; align-items: center; justify-content: center; padding: 20px; }
         
@@ -154,6 +158,11 @@
                 <img src="https://res.cloudinary.com/dgunhvfqj/image/upload/v1776675662/E41A9759_lwmqof.jpg" alt="Foto Pasangan" class="group-icon-large">
                 <h2 class="text-xl font-bold text-gray-800">Pernikahan Rino & Intan</h2>
                 <p class="text-gray-500 text-sm mt-1">Grup · 3 peserta</p>
+                
+                <div class="mt-4 border-t pt-4">
+                    <p class="text-gray-600 text-xs uppercase tracking-widest mb-1">Kepada Yth. Bapak/Ibu/Saudara/i:</p>
+                    <h2 id="nama-tamu" class="text-lg font-bold text-[#00a884]">Nama Tamu</h2>
+                </div>
             </div>
             <div class="invite-body">
                 <p class="text-gray-600 text-sm leading-relaxed px-2">Anda diundang untuk bergabung ke grup ini untuk merayakan hari bahagia kami.</p>
@@ -359,8 +368,14 @@
             <div class="message received" id="msg-intan-reply" data-sender="Intan">
                 <span class="block font-bold text-xs text-pink-500 mb-1">Intan Whetaning Mentari</span>
                 Ini detailnya ya teman-teman (ketuk nomor untuk salin):<br><br>
-                <div class="payment-info"><img src="https://upload.wikimedia.org/wikipedia/commons/5/5c/Bank_Central_Asia.svg" class="payment-logo"><div class="text-xs font-bold">BCA <span class="copyable" onclick="copyToClipboard('4291007036')">4291007036</span><br><span class="text-gray-500 font-normal">a.n Rino Fajar Lazuardi</span></div></div>
-                <div class="payment-info"><img src="https://upload.wikimedia.org/wikipedia/commons/5/5c/Bank_Central_Asia.svg" class="payment-logo"><div class="text-xs font-bold">BCA <span class="copyable" onclick="copyToClipboard('0332094881')">0332094881</span><br><span class="text-gray-500 font-normal">a.n Intan Whetaning Mentari</span></div></div>
+                <div class="payment-info">
+                    <img src="https://www.bca.co.id/-/media/Feature/Card/List-Card/Tentang-BCA/Brand-Assets/Logo-BCA/Logo-BCA_Biru.png" class="payment-logo">
+                    <div class="text-xs font-bold">BCA <span class="copyable" onclick="copyToClipboard('4291007036')">4291007036</span><br><span class="text-gray-500 font-normal">a.n Rino Fajar Lazuardi</span></div>
+                </div>
+                <div class="payment-info">
+                    <img src="https://www.bca.co.id/-/media/Feature/Card/List-Card/Tentang-BCA/Brand-Assets/Logo-BCA/Logo-BCA_Biru.png" class="payment-logo">
+                    <div class="text-xs font-bold">BCA <span class="copyable" onclick="copyToClipboard('0332094881')">0332094881</span><br><span class="text-gray-500 font-normal">a.n Intan Whetaning Mentari</span></div>
+                </div>
                 <div class="timestamp">--:--</div>
             </div>
         </div>
@@ -381,7 +396,12 @@
     </div>
 
     <script>
-        // SCRIPT UNTUK FIX TINGGI LAYAR DI MOBILE
+        const urlParams = new URLSearchParams(window.location.search);
+        const nama = urlParams.get('to');
+        if (nama) {
+            document.getElementById('nama-tamu').innerText = nama;
+        }
+
         function setFullHeight() {
             let vh = window.innerHeight * 0.01;
             document.documentElement.style.setProperty('--vh', `${vh}px`);
