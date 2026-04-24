@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Undangan Pernikahan - Rino & Intan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --wa-bg: #e5ddd5;
+            --wa-header: #075e54;
+            --wa-message-in: #ffffff;
+            --wa-message-out: #dcf8c6;
+            --wa-dark: #121b22;
+            --wa-teal: #008069;
+            /* Default tinggi jika JS belum jalan */
+            --vh: 1vh;
+        }
+
+        body {
+            background-color: var(--wa-dark);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            overflow: hidden;
+            margin: 0;
+            /* Menggunakan variabel vh dinamis */
+            height: calc(var(--vh, 1vh) * 100);
+        }
+
+        .wa-container {
+            max-width: 500px;
+            margin: 0 auto;
+            height: calc(var(--vh, 1vh) * 100);
+            display: flex;
+            flex-direction: column;
+            background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');
+            background-color: var(--wa-bg);
+            position: relative;
+        }
+
+        #group-invite-overlay {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), 
+                        url('https://res.cloudinary.com/dgunhvfqj/image/upload/v1776675662/E41A9673_niqk1j.jpg') center/cover no-repeat;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(2px);
+        }
+
+        .invite-card {
+            background: rgba(255, 255, 255, 0.95);
+            width: 85%;
+            max-width: 350px;
+            border-radius: 28px;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            backdrop-filter: blur(10px);
+        }
+
+        @keyframes popIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .invite-header { padding: 30px 20px 20px; text-align: center; background: rgba(248, 249, 250, 0.5); }
+        .group-icon-large { width: 100px; height: 100px; border-radius: 50%; margin: 0 auto 15px; object-fit: cover; border: 4px solid white; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        .invite-body { padding: 0 25px 30px; text-align: center; }
+        .btn-join { background-color: #00a884; color: white; width: 100%; padding: 14px; border-radius: 25px; font-weight: 600; font-size: 16px; margin-top: 20px; transition: all 0.2s; box-shadow: 0 4px 10px rgba(0, 168, 132, 0.3); }
+
+        .wa-header { background-color: var(--wa-header); color: white; height: 62px; padding: 0 15px; display: flex; align-items: center; gap: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 10; flex-shrink: 0; }
+        .wa-chat-area { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; padding-bottom: 20px; scroll-behavior: smooth; }
+
+        .message { max-width: 85%; padding: 8px 12px; border-radius: 8px; position: relative; font-size: 14.5px; box-shadow: 0 1px 1px rgba(0,0,0,0.1); line-height: 1.4; display: none; }
+        .received { background-color: var(--wa-message-in); align-self: flex-start; border-top-left-radius: 0; }
+        .sent { background-color: var(--wa-message-out); align-self: flex-end; border-top-right-radius: 0; }
+        .reply-box { background: rgba(0,0,0,0.05); border-left: 4px solid #34b7f1; padding: 5px 8px; border-radius: 4px; margin-bottom: 4px; font-size: 12px; display: block; overflow: hidden; max-width: 100%; }
+        .reply-text { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; color: #667781; }
+        .timestamp { font-size: 10px; color: #888; text-align: right; margin-top: 4px; }
+
+        .system-msg { align-self: center; background-color: #fff5c4; padding: 5px 12px; border-radius: 6px; font-size: 12px; color: #555; text-align: center; margin: 10px 0; box-shadow: 0 1px 1px rgba(0,0,0,0.05); }
+
+        .wa-footer { 
+            background-color: transparent; 
+            padding: 8px 10px; 
+            display: flex; 
+            flex-direction: column; 
+            position: relative; 
+            z-index: 5; 
+            /* Memberikan ruang aman untuk home indicator pada iPhone Baru */
+            padding-bottom: calc(8px + env(safe-area-inset-bottom)); 
+        }
+        .input-row { display: flex; align-items: center; gap: 8px; width: 100%; }
+        .wa-input-container { background: white; flex: 1; padding: 8px 12px; border-radius: 25px; display: flex; align-items: center; gap: 10px; box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+        .wa-input { flex: 1; font-size: 16px; color: #111b21; border: none; outline: none; background: transparent; max-height: 100px; overflow-y: auto; }
+        .wa-input:empty:before { content: 'Ketik pesan'; color: #888; }
+        .btn-send-container { width: 45px; height: 45px; background-color: #00a884; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; flex-shrink: 0; box-shadow: 0 1px 2px rgba(0,0,0,0.2); cursor: pointer; }
+
+        .emoji-panel { display: none; background: white; border-radius: 12px 12px 0 0; padding: 10px; margin-top: 10px; max-height: 200px; overflow-y: auto; grid-template-columns: repeat(8, 1fr); gap: 10px; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); }
+        .emoji-item { font-size: 24px; text-align: center; cursor: pointer; transition: transform 0.1s; }
+        .emoji-item:active { transform: scale(1.2); }
+
+        .btn-action { background-color: #25d366; color: white; padding: 10px 12px; border-radius: 8px; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px; text-align: center; width: 100%; transition: opacity 0.2s; }
+        .btn-calendar { background-color: #3b82f6; }
+
+        .music-control { position: absolute; right: 15px; bottom: 85px; width: 42px; height: 42px; background-color: #25d366; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; box-shadow: 0 4px 10px rgba(0,0,0,0.3); cursor: pointer; z-index: 100; display: none; }
+
+        .typing-animation { animation: fadeIn 0.3s ease-out forwards; display: block !important; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .photo-album { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; margin-top: 8px; border-radius: 8px; overflow: hidden; }
+        .album-img { width: 100%; aspect-ratio: 1/1; object-fit: cover; cursor: pointer; transition: opacity 0.2s; }
+
+        .payment-info { background: rgba(0,0,0,0.03); border-radius: 12px; padding: 12px; margin-top: 8px; display: flex; align-items: center; gap: 12px; border: 1px solid rgba(0,0,0,0.05); }
+        .payment-logo { width: 50px; height: auto; object-fit: contain; flex-shrink: 0; }
+
+        #calendar-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 20000; display: none; align-items: center; justify-content: center; padding: 20px; }
+        
+        #group-info-modal { position: fixed; inset: 0; background: #f0f2f5; z-index: 10000; display: none; flex-direction: column; overflow-y: auto; scrollbar-width: none; }
+        #group-info-modal::-webkit-scrollbar { display: none; }
+        
+        .info-header-bg { background: var(--wa-teal); color: white; height: 62px; display: flex; align-items: center; padding: 0 16px; position: sticky; top: 0; z-index: 20; flex-shrink: 0; }
+        .info-profile-section { position: relative; width: 100%; }
+        .info-profile-img { width: 100%; aspect-ratio: 1/1; object-fit: cover; cursor: pointer; }
+        .info-name-card { background: white; padding: 16px; margin-bottom: 8px; position: relative; }
+        .info-section-title { color: var(--wa-teal); font-size: 14px; font-weight: 500; margin-bottom: 8px; }
+        .info-card { background: white; padding: 16px; margin-bottom: 8px; }
+        
+        .media-preview-container { display: flex; gap: 8px; overflow-x: auto; padding: 4px 0; scrollbar-width: none; }
+        .media-preview-container::-webkit-scrollbar { display: none; }
+        .media-thumb { width: 80px; height: 80px; flex-shrink: 0; border-radius: 8px; object-fit: cover; }
+        
+        .participant-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #f0f2f5; }
+        .participant-img { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; background: #e9edef; }
+        .participant-name { flex: 1; font-weight: 500; color: #111b21; }
+        .participant-tag { background: #e7fce3; color: #1fa855; font-size: 11px; padding: 2px 6px; border-radius: 4px; }
+
+        #image-viewer { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 30000; display: none; align-items: center; justify-content: center; }
+        #call-overlay { position: fixed; inset: 0; background-color: #0b141a; z-index: 40000; display: none; flex-direction: column; color: white; overflow: hidden; }
+        
+        .voice-wave { display: flex; align-items: center; justify-content: center; gap: 4px; height: 40px; margin-top: 10px; }
+        .wave-bar { width: 3px; height: 10px; background: #25d366; border-radius: 2px; animation: wave 0.8s ease-in-out infinite; }
+        @keyframes wave { 0%, 100% { height: 10px; } 50% { height: 30px; } }
+    </style>
+</head>
+<body>
+
+    <div id="group-invite-overlay">
+        <div class="invite-card">
+            <div class="invite-header">
+                <img src="https://res.cloudinary.com/dgunhvfqj/image/upload/v1776675662/E41A9759_lwmqof.jpg" alt="Foto Pasangan" class="group-icon-large">
+                <h2 class="text-xl font-bold text-gray-800">Pernikahan Rino & Intan</h2>
+                <p class="text-gray-500 text-sm mt-1">Grup · 3 peserta</p>
+            </div>
+            <div class="invite-body">
+                <p class="text-gray-600 text-sm leading-relaxed px-2">Anda diundang untuk bergabung ke grup ini untuk merayakan hari bahagia kami.</p>
+                <button onclick="joinGroup()" class="btn-join">Bergabung ke grup</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="call-overlay">
+        <div class="relative z-10 pt-20 text-center">
+            <img src="https://res.cloudinary.com/dgunhvfqj/image/upload/v1776675662/E41A9759_lwmqof.jpg" class="w-32 h-32 rounded-full mx-auto mb-5 border border-white/20 object-cover">
+            <h2 class="text-2xl font-semibold">Pernikahan Rino & Intan</h2>
+            <p id="call-status" class="text-gray-300 mt-2">Menghubungkan...</p>
+            <div id="voice-animation" class="voice-wave" style="display:none;">
+                <div class="wave-bar" style="animation-delay: 0s"></div>
+                <div class="wave-bar" style="animation-delay: 0.1s"></div>
+                <div class="wave-bar" style="animation-delay: 0.2s"></div>
+                <div class="wave-bar" style="animation-delay: 0.3s"></div>
+                <div class="wave-bar" style="animation-delay: 0.4s"></div>
+            </div>
+        </div>
+        <div class="absolute bottom-16 w-full flex justify-center gap-8 z-10">
+            <div class="w-14 h-14 rounded-full bg-white/10 backdrop-blur flex items-center justify-center text-xl"><i class="fas fa-microphone-slash"></i></div>
+            <div class="w-14 h-14 rounded-full bg-white/10 backdrop-blur flex items-center justify-center text-xl"><i class="fas fa-video-slash"></i></div>
+            <div class="w-14 h-14 rounded-full bg-red-600 flex items-center justify-center text-xl cursor-pointer" onclick="endCall()"><i class="fas fa-phone-slash"></i></div>
+        </div>
+    </div>
+
+    <div id="copy-toast" class="fixed bottom-24 left-1/2 -translate-x-1/2 bg-black/80 text-white px-4 py-2 rounded-full text-xs z-[100000] hidden">Nomor disalin!</div>
+
+    <div id="calendar-modal" onclick="closeCalendarModal()">
+        <div class="bg-white w-80 rounded-2xl overflow-hidden shadow-2xl" onclick="event.stopPropagation()">
+            <div class="p-5 border-b text-center"><h3 class="font-bold text-gray-800">Simpan Acara</h3></div>
+            <div class="p-2">
+                <button onclick="openGoogleCalendar()" class="w-full flex items-center gap-4 p-3 hover:bg-gray-100 rounded-lg">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Google_Calendar_icon_%282020%29.svg" class="w-8 h-8">
+                    <div class="text-left"><p class="font-bold text-sm text-gray-800">Google Calendar</p></div>
+                </button>
+                <button onclick="downloadIcs()" class="w-full flex items-center gap-4 p-3 hover:bg-gray-100 rounded-lg">
+                    <div class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center text-white"><i class="fas fa-calendar-alt"></i></div>
+                    <div class="text-left"><p class="font-bold text-sm text-gray-800">Kalender Lainnya</p></div>
+                </button>
+            </div>
+            <button onclick="closeCalendarModal()" class="w-full p-4 text-sm font-bold text-blue-600 border-t">Batal</button>
+        </div>
+    </div>
+
+    <div id="image-viewer">
+        <div class="absolute top-5 right-5 text-white text-2xl cursor-pointer" onclick="closeViewer()"><i class="fas fa-times"></i></div>
+        <div class="absolute left-4 text-white text-xl p-3 bg-white/10 rounded-full cursor-pointer" onclick="prevImage()"><i class="fas fa-chevron-left"></i></div>
+        <img id="full-image" class="max-w-full max-h-screen object-contain" src="">
+        <div class="absolute right-4 text-white text-xl p-3 bg-white/10 rounded-full cursor-pointer" onclick="nextImage()"><i class="fas fa-chevron-right"></i></div>
+        <div class="absolute bottom-5 text-white text-sm bg-black/50 px-4 py-1 rounded-full" id="image-counter">1 / 1</div>
+    </div>
+
+    <div id="group-info-modal">
+        <div class="info-header-bg">
+            <button onclick="toggleInfoGroup()" class="mr-6"><i class="fas fa-arrow-left text-lg"></i></button>
+            <span class="text-lg font-medium">Info grup</span>
+        </div>
+        
+        <div class="info-profile-section">
+            <img src="https://res.cloudinary.com/dgunhvfqj/image/upload/v1776675662/E41A9759_lwmqof.jpg" class="info-profile-img" onclick="openSingleViewer(this.src)">
+        </div>
+        
+        <div class="info-name-card shadow-sm">
+            <h1 class="text-2xl font-normal text-[#111b21] mb-1">Pernikahan Rino & Intan</h1>
+            <p class="text-gray-500 text-sm">Grup · 3 peserta</p>
+        </div>
+
+        <div class="info-card shadow-sm">
+            <p class="text-[#111b21] text-[15px]">Mohon doa restu dari teman-teman semua untuk mengarungi bahtera rumah tangga kami. 🙏✨</p>
+            <p class="text-gray-400 text-xs mt-3">Dibuat oleh Rino, 10/02/2026</p>
+        </div>
+
+        <div class="info-card shadow-sm cursor-pointer" onclick="toggleInfoGroup(); openGalleryViewer(0);">
+            <div class="flex justify-between items-center mb-3">
+                <span class="text-sm font-medium text-gray-500">Media, tautan, dan dok.</span>
+                <div class="flex items-center text-gray-400 text-sm">
+                    <span>6</span>
+                    <i class="fas fa-chevron-right ml-2 text-xs"></i>
+                </div>
+            </div>
+            <div class="media-preview-container">
+                <img src="https://res.cloudinary.com/dgunhvfqj/image/upload/v1776675681/E41A9724_hj0ona.jpg" class="media-thumb">
+                <img src="https://res.cloudinary.com/dgunhvfqj/image/upload/v1776675654/E41A9730_klzkku.jpg" class="media-thumb">
+                <img src="https://res.cloudinary.com/dgunhvfqj/image/upload/v1776675685/E41A9689_mezjss.jpg" class="media-thumb">
+                <img src="https://res.cloudinary.com/dgunhvfqj/image/upload/v1776675649/E41A9683_hvhxei.jpg" class="media-thumb">
+            </div>
+        </div>
+
+        <div class="info-card shadow-sm">
+            <div class="info-section-title">3 peserta</div>
+            <div class="participant-item">
+                <img src="https://res.cloudinary.com/dgunhvfqj/image/upload/v1776675681/E41A9724_hj0ona.jpg" class="participant-img cursor-pointer" onclick="openSingleViewer(this.src)">
+                <div class="participant-name">Rino Fajar Lazuardi</div>
+                <div class="participant-tag">Admin grup</div>
+            </div>
+            <div class="participant-item">
+                <img src="https://res.cloudinary.com/dgunhvfqj/image/upload/v1776675654/E41A9730_klzkku.jpg" class="participant-img cursor-pointer" onclick="openSingleViewer(this.src)">
+                <div class="participant-name">Intan Whetaning Mentari</div>
+                <div class="participant-tag">Admin grup</div>
+            </div>
+            <div class="participant-item">
+                <div class="participant-img flex items-center justify-center bg-gray-200 text-gray-400 text-xl"><i class="fas fa-user"></i></div>
+                <div class="participant-name">Anda</div>
+            </div>
+        </div>
+        
+        <div class="p-8 text-center bg-white mb-10">
+            <button class="text-red-500 font-medium flex items-center gap-5 w-full">
+                <i class="fas fa-door-open"></i> Keluar dari grup
+            </button>
+        </div>
+    </div>
+
+    <audio id="weddingAudio" loop preload="auto">
+        <source src="https://res.cloudinary.com/dgunhvfqj/video/upload/v1777017499/love_story_koplo_edit_gzdljx.mp3" type="audio/mpeg">
+    </audio>
+
+    <div class="wa-container">
+        <div id="musicBtn" class="music-control" onclick="toggleMusic()">
+            <i id="musicIcon" class="fas fa-pause"></i>
+        </div>
+
+        <div class="wa-header cursor-pointer" onclick="toggleInfoGroup()">
+            <i class="fas fa-arrow-left"></i>
+            <div class="w-10 h-10 rounded-full overflow-hidden border border-white/20">
+                <img src="https://res.cloudinary.com/dgunhvfqj/image/upload/v1776675662/E41A9759_lwmqof.jpg" alt="Foto Profil" class="w-full h-full object-cover">
+            </div>
+            <div class="flex-1">
+                <h1 class="font-bold text-base leading-tight">Pernikahan Rino & Intan</h1>
+                <p id="group-status" class="text-xs opacity-80 truncate">Rino, Intan, Anda</p>
+            </div>
+            <div class="flex gap-4" onclick="event.stopPropagation()">
+                <i class="fas fa-video cursor-pointer" onclick="startCall('video')"></i>
+                <i class="fas fa-phone cursor-pointer" onclick="startCall('voice')"></i>
+                <i class="fas fa-ellipsis-v" onclick="toggleInfoGroup()"></i>
+            </div>
+        </div>
+
+        <div class="wa-chat-area" id="chatArea">
+            <div class="system-msg">Pesan ke grup ini diamankan dengan enkripsi end-to-end.</div>
+            <div id="join-notif" style="display:none;" class="system-msg italic">Anda bergabung menggunakan tautan undangan grup ini</div>
+
+            <div class="message received" id="msg-1" data-sender="Rino">
+                <span class="block font-bold text-xs text-blue-600 mb-1">Rino Fajar Lazuardi</span>
+                Assalamu'alaikum Wr. Wb. Kepada yang terhormat bapak/ibu/saudara/i dan teman-teman semua. Dalam Group ini Kami ingin memberikan Kabar Bahagia 😊
+                <div class="timestamp">--:--</div>
+            </div>
+
+            <div class="message received" id="msg-2" data-sender="Intan">
+                <span class="block font-bold text-xs text-pink-500 mb-1">Intan Whetaning Mentari</span>
+                Iya betul! Akhirnya kami memutuskan untuk melangkah ke pelaminan. 💍
+                <div class="timestamp">--:--</div>
+            </div>
+
+            <div class="message received" id="msg-prewed" data-sender="Rino">
+                <span class="block font-bold text-xs text-blue-600 mb-1">Rino Fajar Lazuardi</span>
+                Sebelumnya, izinkan kami berbagi sedikit momen bahagia kami lewat foto pre-wedding ini yaa... 🙏✨
+                <div class="photo-album">
+                    <img src="https://res.cloudinary.com/dgunhvfqj/image/upload/v1776675681/E41A9724_hj0ona.jpg" onclick="openGalleryViewer(0)" class="album-img">
+                    <img src="https://res.cloudinary.com/dgunhvfqj/image/upload/v1776675654/E41A9730_klzkku.jpg" onclick="openGalleryViewer(1)" class="album-img">
+                    <img src="https://res.cloudinary.com/dgunhvfqj/image/upload/v1776675685/E41A9689_mezjss.jpg" onclick="openGalleryViewer(2)" class="album-img">
+                    <img src="https://res.cloudinary.com/dgunhvfqj/image/upload/v1776675649/E41A9683_hvhxei.jpg" onclick="openGalleryViewer(3)" class="album-img">
+                    <img src="https://res.cloudinary.com/dgunhvfqj/image/upload/v1776675658/E41A9700_pryay5.jpg" onclick="openGalleryViewer(4)" class="album-img">
+                    <img src="https://res.cloudinary.com/dgunhvfqj/image/upload/v1776675662/E41A9673_niqk1j.jpg" onclick="openGalleryViewer(5)" class="album-img">
+                </div>
+                <div class="timestamp">--:--</div>
+            </div>
+
+            <div class="message received" id="msg-3" data-sender="Rino">
+                <img src="https://res.cloudinary.com/dgunhvfqj/image/upload/v1776675662/E41A9759_lwmqof.jpg" class="rounded-lg mb-2 w-full h-56 object-cover cursor-pointer" onclick="openSingleViewer(this.src)">
+                <div class="bg-blue-50 border-l-4 border-blue-400 p-3 rounded-md mb-3">
+                    <h2 class="font-bold text-blue-800 text-sm mb-2">📅 SAVE THE DATE</h2>
+                    <p class="text-sm font-bold">Sabtu, 6 Juni 2026</p>
+                    <div class="mt-2 text-xs text-gray-700 space-y-1">
+                        <p><i class="fas fa-ring text-blue-500 mr-1"></i> <b>Akad Nikah:</b> 07:00 WIB - Selesai</p>
+                        <p><i class="fas fa-glass-cheers text-blue-500 mr-1"></i> <b>Resepsi:</b> 12:00 WIB - 15:00 WIB</p>
+                    </div>
+                    <button onclick="showCalendarOptions()" class="btn-action btn-calendar mt-3"><i class="far fa-calendar-plus"></i> Simpan di Kalender</button>
+                </div>
+                <div class="bg-gray-50 border-l-4 border-gray-400 p-3 rounded-md mb-2">
+                    <h2 class="font-bold text-gray-800 text-sm mb-1">📍 LOKASI</h2>
+                    <p class="text-xs text-gray-600 mb-3">Taman Tirtoyoso, Kediri</p>
+                    <a href="https://www.google.com/maps/search/Taman+Tirtoyoso+Kediri" target="_blank" class="btn-action"><i class="fas fa-map-marker-alt"></i> Buka Maps</a>
+                </div>
+                <div class="timestamp">--:--</div>
+            </div>
+
+            <div class="message sent" id="msg-4" data-sender="Anda">
+                Wah selamat ya Rino & Intan! Foto-fotonya bagus sekali 😍 Insya Allah hadir. Jika tidak bisa hadir dan mau mengirim hadiah, kirim kemana nih?
+                <div class="timestamp">--:--</div>
+            </div>
+
+            <div class="message received" id="msg-rino-reply" data-sender="Rino">
+                <span class="block font-bold text-xs text-blue-600 mb-1">Rino Fajar Lazuardi</span>
+                <div class="reply-box"><span class="font-bold text-blue-600">Anda</span><br><div class="reply-text">Wah selamat ya Rino & Intan! Foto-fotonya bagus sekali 😍 Insya Allah hadir...</div></div>
+                Aamiin, terima kasih banyak ya! Untuk hadiah bisa dikirim ke alamat rumah atau rekening ini ya. 🙏
+                <div class="timestamp">--:--</div>
+            </div>
+
+            <div class="message received" id="msg-intan-reply" data-sender="Intan">
+                <span class="block font-bold text-xs text-pink-500 mb-1">Intan Whetaning Mentari</span>
+                Ini detailnya ya teman-teman (ketuk nomor untuk salin):<br><br>
+                <div class="payment-info"><img src="https://upload.wikimedia.org/wikipedia/commons/5/5c/Bank_Central_Asia.svg" class="payment-logo"><div class="text-xs font-bold">BCA <span class="copyable" onclick="copyToClipboard('4291007036')">4291007036</span><br><span class="text-gray-500 font-normal">a.n Rino Fajar Lazuardi</span></div></div>
+                <div class="payment-info"><img src="https://upload.wikimedia.org/wikipedia/commons/5/5c/Bank_Central_Asia.svg" class="payment-logo"><div class="text-xs font-bold">BCA <span class="copyable" onclick="copyToClipboard('0332094881')">0332094881</span><br><span class="text-gray-500 font-normal">a.n Intan Whetaning Mentari</span></div></div>
+                <div class="timestamp">--:--</div>
+            </div>
+        </div>
+
+        <div class="wa-footer" id="waFooter">
+            <div id="emojiPanel" class="emoji-panel"></div>
+            <div class="input-row">
+                <div class="wa-input-container">
+                    <i class="far fa-smile text-[#667781] text-xl cursor-pointer" onclick="toggleEmojiPanel()"></i>
+                    <div id="chatInput" class="wa-input" contenteditable="true" oninput="handleInput(this)"></div>
+                    <div class="flex gap-4 text-[#667781] items-center"><i class="fas fa-paperclip transform rotate-[-45deg]"></i><i class="fas fa-camera"></i></div>
+                </div>
+                <div id="btnMicSend" class="btn-send-container" onclick="handleSend()">
+                    <i id="sendIcon" class="fas fa-microphone"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // SCRIPT UNTUK FIX TINGGI LAYAR DI MOBILE
+        function setFullHeight() {
+            let vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        }
+        
+        window.addEventListener('resize', setFullHeight);
+        window.addEventListener('orientationchange', setFullHeight);
+        setFullHeight();
+
+        const audio = document.getElementById('weddingAudio');
+        const musicIcon = document.getElementById('musicIcon');
+        const musicBtn = document.getElementById('musicBtn');
+        const overlay = document.getElementById('group-invite-overlay');
+        const infoModal = document.getElementById('group-info-modal');
+        const calendarModal = document.getElementById('calendar-modal');
+        const chatArea = document.getElementById('chatArea');
+        const statusText = document.getElementById('group-status');
+        const joinNotif = document.getElementById('join-notif');
+        const imageViewer = document.getElementById('image-viewer');
+        const fullImage = document.getElementById('full-image');
+        const counterText = document.getElementById('image-counter');
+        const toast = document.getElementById('copy-toast');
+        const chatInput = document.getElementById('chatInput');
+        const emojiPanel = document.getElementById('emojiPanel');
+        const sendIcon = document.getElementById('sendIcon');
+        
+        const callOverlay = document.getElementById('call-overlay');
+        const callStatus = document.getElementById('call-status');
+        const voiceAnim = document.getElementById('voice-animation');
+
+        const originalStatus = "Rino, Intan, Anda";
+        let isJoined = false; 
+        let userPausedManually = false; 
+        let isCalling = false;
+        let activeCallTimer = null;
+
+        const emojis = ["❤️", "😍", "🎉", "💍", "🎊", "🥳", "✨", "🙏", "🥺", "😊", "🔥", "💯", "👏", "🙌", "💙", "💖", "🌸", "🥰", "🤩", "😇", "💌", "💝"];
+
+        document.addEventListener("visibilitychange", function() {
+            if (isJoined && !userPausedManually && !isCalling) {
+                if (document.hidden) {
+                    audio.pause();
+                } else {
+                    audio.play().catch(() => {});
+                }
+                updateMusicIcon();
+            }
+        });
+
+        function initEmojiPanel() {
+            emojiPanel.innerHTML = '';
+            emojis.forEach(emoji => {
+                const span = document.createElement('span');
+                span.className = 'emoji-item';
+                span.innerText = emoji;
+                span.onclick = () => {
+                    chatInput.innerText += emoji;
+                    handleInput(chatInput);
+                };
+                emojiPanel.appendChild(span);
+            });
+        }
+
+        function toggleEmojiPanel() {
+            emojiPanel.style.display = emojiPanel.style.display === 'grid' ? 'none' : 'grid';
+            setTimeout(() => { chatArea.scrollTop = chatArea.scrollHeight; }, 100);
+        }
+
+        function handleInput(el) {
+            sendIcon.className = el.innerText.trim().length > 0 ? 'fas fa-paper-plane' : 'fas fa-microphone';
+        }
+
+        function handleSend() {
+            const text = chatInput.innerText.trim();
+            if (text.length === 0) return;
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'message sent typing-animation';
+            msgDiv.innerHTML = `${text}<div class="timestamp">${getCurrentTime()}</div>`;
+            chatArea.appendChild(msgDiv);
+            chatInput.innerText = '';
+            handleInput(chatInput);
+            emojiPanel.style.display = 'none';
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+
+        function getCurrentTime() {
+            const now = new Date();
+            return now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+        }
+
+        function copyToClipboard(text) {
+            const el = document.createElement('textarea'); el.value = text;
+            document.body.appendChild(el); el.select(); document.execCommand('copy'); document.body.removeChild(el);
+            toast.style.display = 'block'; setTimeout(() => { toast.style.display = 'none'; }, 2000);
+        }
+
+        function playMusic() {
+            audio.play().then(() => updateMusicIcon()).catch(() => {
+                document.addEventListener('click', () => {
+                    if (audio.paused && !userPausedManually && !isCalling) { audio.play(); updateMusicIcon(); }
+                }, { once: true });
+            });
+        }
+
+        function pauseMusic() { audio.pause(); updateMusicIcon(); }
+
+        function joinGroup() {
+            overlay.style.opacity = "0";
+            setTimeout(() => {
+                overlay.style.display = 'none'; 
+                musicBtn.style.display = 'flex';
+                playMusic();
+                isJoined = true; 
+                joinNotif.style.display = 'block';
+                showMessagesSequential();
+            }, 500);
+        }
+
+        const prewedImages = [
+            'https://res.cloudinary.com/dgunhvfqj/image/upload/v1776675681/E41A9724_hj0ona.jpg',
+            'https://res.cloudinary.com/dgunhvfqj/image/upload/v1776675654/E41A9730_klzkku.jpg',
+            'https://res.cloudinary.com/dgunhvfqj/image/upload/v1776675685/E41A9689_mezjss.jpg',
+            'https://res.cloudinary.com/dgunhvfqj/image/upload/v1776675649/E41A9683_hvhxei.jpg',
+            'https://res.cloudinary.com/dgunhvfqj/image/upload/v1776675658/E41A9700_pryay5.jpg',
+            'https://res.cloudinary.com/dgunhvfqj/image/upload/v1776675662/E41A9673_niqk1j.jpg'
+        ];
+        let currentGallery = []; let currentIndex = 0;
+
+        function openSingleViewer(src) { currentGallery = [src]; currentIndex = 0; updateViewer(); imageViewer.style.display = 'flex'; }
+        function openGalleryViewer(index) { currentGallery = prewedImages; currentIndex = index; updateViewer(); imageViewer.style.display = 'flex'; }
+        function updateViewer() {
+            fullImage.src = currentGallery[currentIndex];
+            counterText.innerText = `${currentIndex + 1} / ${currentGallery.length}`;
+        }
+        function nextImage() { currentIndex = (currentIndex + 1) % currentGallery.length; updateViewer(); }
+        function prevImage() { currentIndex = (currentIndex - 1 + currentGallery.length) % currentGallery.length; updateViewer(); }
+        function closeViewer() { imageViewer.style.display = 'none'; }
+        function showCalendarOptions() { calendarModal.style.display = 'flex'; }
+        function closeCalendarModal() { calendarModal.style.display = 'none'; }
+
+        function openGoogleCalendar() {
+            window.open(`https://www.google.com/calendar/render?action=TEMPLATE&text=Pernikahan+Rino+%26+Intan&dates=20260606T000000Z/20260606T080000Z&location=Taman+Tirtoyoso,+Kediri`, '_blank');
+        }
+
+        function downloadIcs() {
+            const icsText = "BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nSUMMARY:Pernikahan Rino & Intan\nDTSTART:20260606T070000\nLOCATION:Taman Tirtoyoso, Kediri\nEND:VEVENT\nEND:VCALENDAR";
+            const blob = new Blob([icsText], { type: 'text/calendar' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = 'event.ics'; a.click();
+        }
+
+        function toggleInfoGroup() { if (isJoined) infoModal.style.display = infoModal.style.display === 'flex' ? 'none' : 'flex'; }
+        function toggleMusic() { if (audio.paused) { userPausedManually = false; playMusic(); } else { userPausedManually = true; pauseMusic(); } }
+        function updateMusicIcon() { musicIcon.className = audio.paused ? 'fas fa-play' : 'fas fa-pause'; }
+
+        async function showMessagesSequential() {
+            const messages = ['msg-1', 'msg-2', 'msg-prewed', 'msg-3', 'msg-4', 'msg-rino-reply', 'msg-intan-reply'];
+            for (const id of messages) {
+                const element = document.getElementById(id);
+                if (!element) continue;
+                const timestampEl = element.querySelector('.timestamp');
+                if (timestampEl) timestampEl.innerText = getCurrentTime();
+                statusText.innerText = `${element.getAttribute('data-sender')} sedang mengetik...`;
+                await new Promise(r => setTimeout(r, 1500));
+                element.classList.add('typing-animation');
+                chatArea.scrollTop = chatArea.scrollHeight;
+                statusText.innerText = originalStatus;
+                await new Promise(r => setTimeout(r, 800));
+            }
+        }
+
+        function startCall(type) {
+            if (!isJoined) return;
+            isCalling = true; pauseMusic();
+            callOverlay.style.display = 'flex';
+            callStatus.innerText = "Menghubungkan...";
+            voiceAnim.style.display = 'flex';
+            setTimeout(() => {
+                if (!isCalling) return;
+                callStatus.innerText = "00:00";
+                let s = 0;
+                activeCallTimer = setInterval(() => {
+                    s++;
+                    const m = Math.floor(s/60).toString().padStart(2,'0');
+                    const sec = (s%60).toString().padStart(2,'0');
+                    callStatus.innerText = `${m}:${sec}`;
+                }, 1000);
+            }, 2000);
+        }
+
+        function endCall() {
+            isCalling = false; clearInterval(activeCallTimer);
+            callOverlay.style.display = 'none';
+            if (!userPausedManually) playMusic();
+        }
+
+        initEmojiPanel();
+    </script>
+</body>
+</html>
