@@ -121,6 +121,58 @@
         .payment-info { background: rgba(0,0,0,0.03); border-radius: 12px; padding: 12px; margin-top: 8px; display: flex; align-items: center; gap: 12px; border: 1px solid rgba(0,0,0,0.05); }
         .payment-logo { width: 60px; height: auto; object-fit: contain; flex-shrink: 0; }
 
+        /* Notification Panggilan Masuk (Indikator) */
+        #incoming-call-notif {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            max-width: 480px;
+            margin: 0 auto;
+            background: #1d2b33;
+            border-radius: 12px;
+            padding: 12px 16px;
+            z-index: 50000;
+            display: none;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            animation: slideDown 0.4s ease-out;
+        }
+
+        @keyframes slideDown { from { transform: translateY(-120%); } to { transform: translateY(0); } }
+
+        /* Video Call Screen Penuh */
+        #video-call-overlay {
+            position: fixed;
+            inset: 0;
+            background-color: #0b141a;
+            z-index: 60000;
+            display: none;
+            flex-direction: column;
+            color: white;
+            overflow: hidden;
+        }
+
+        #call-video-bg {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 1;
+        }
+
+        .call-content {
+            position: relative;
+            z-index: 2;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, transparent 20%, transparent 80%, rgba(0,0,0,0.6) 100%);
+            padding: 40px 20px;
+        }
+
         #calendar-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 20000; display: none; align-items: center; justify-content: center; padding: 20px; }
         
         #group-info-modal { position: fixed; inset: 0; background: #f0f2f5; z-index: 10000; display: none; flex-direction: column; overflow-y: auto; scrollbar-width: none; }
@@ -143,14 +195,40 @@
         .participant-tag { background: #e7fce3; color: #1fa855; font-size: 11px; padding: 2px 6px; border-radius: 4px; }
 
         #image-viewer { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 30000; display: none; align-items: center; justify-content: center; }
-        #call-overlay { position: fixed; inset: 0; background-color: #0b141a; z-index: 40000; display: none; flex-direction: column; color: white; overflow: hidden; }
-        
-        .voice-wave { display: flex; align-items: center; justify-content: center; gap: 4px; height: 40px; margin-top: 10px; }
-        .wave-bar { width: 3px; height: 10px; background: #25d366; border-radius: 2px; animation: wave 0.8s ease-in-out infinite; }
-        @keyframes wave { 0%, 100% { height: 10px; } 50% { height: 30px; } }
     </style>
 </head>
 <body>
+
+    <!-- Indikator Panggilan Masuk Melayang -->
+    <div id="incoming-call-notif">
+        <img src="https://res.cloudinary.com/dgunhvfqj/image/upload/v1776675662/E41A9759_lwmqof.jpg" class="w-12 h-12 rounded-full object-cover">
+        <div class="flex-1">
+            <p class="text-white font-bold text-sm">Pernikahan Rino & Intan</p>
+            <p class="text-gray-400 text-xs">Panggilan video masuk...</p>
+        </div>
+        <div class="flex gap-3">
+            <button onclick="rejectCall()" class="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center text-white"><i class="fas fa-times"></i></button>
+            <button onclick="acceptCall()" class="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-white"><i class="fas fa-video"></i></button>
+        </div>
+    </div>
+
+    <!-- Layar Video Call Penuh -->
+    <div id="video-call-overlay">
+        <video id="call-video-bg" playsinline loop>
+            <source src="https://res.cloudinary.com/dgunhvfqj/video/upload/v1777277894/VID20260426213636_jcu5h2.mp4" type="video/mp4">
+        </video>
+        <div class="call-content">
+            <div class="text-center pt-10">
+                <h2 class="text-2xl font-bold text-white shadow-sm">Rino & Intan</h2>
+                <p id="call-timer" class="text-gray-200 mt-1">00:00</p>
+            </div>
+            <div class="mt-auto flex justify-center gap-10 pb-12">
+                <div class="w-14 h-14 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-xl text-white"><i class="fas fa-microphone-slash"></i></div>
+                <div onclick="endCall()" class="w-16 h-16 rounded-full bg-red-600 flex items-center justify-center text-2xl text-white cursor-pointer shadow-lg"><i class="fas fa-phone-slash"></i></div>
+                <div class="w-14 h-14 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-xl text-white"><i class="fas fa-sync-alt"></i></div>
+            </div>
+        </div>
+    </div>
 
     <div id="group-invite-overlay">
         <div class="invite-card">
@@ -168,26 +246,6 @@
                 <p class="text-gray-600 text-sm leading-relaxed px-2">Anda diundang untuk bergabung ke grup ini untuk merayakan hari bahagia kami.</p>
                 <button onclick="joinGroup()" class="btn-join">Bergabung ke grup</button>
             </div>
-        </div>
-    </div>
-
-    <div id="call-overlay">
-        <div class="relative z-10 pt-20 text-center">
-            <img src="https://res.cloudinary.com/dgunhvfqj/image/upload/v1776675662/E41A9759_lwmqof.jpg" class="w-32 h-32 rounded-full mx-auto mb-5 border border-white/20 object-cover">
-            <h2 class="text-2xl font-semibold">Pernikahan Rino & Intan</h2>
-            <p id="call-status" class="text-gray-300 mt-2">Menghubungkan...</p>
-            <div id="voice-animation" class="voice-wave" style="display:none;">
-                <div class="wave-bar" style="animation-delay: 0s"></div>
-                <div class="wave-bar" style="animation-delay: 0.1s"></div>
-                <div class="wave-bar" style="animation-delay: 0.2s"></div>
-                <div class="wave-bar" style="animation-delay: 0.3s"></div>
-                <div class="wave-bar" style="animation-delay: 0.4s"></div>
-            </div>
-        </div>
-        <div class="absolute bottom-16 w-full flex justify-center gap-8 z-10">
-            <div class="w-14 h-14 rounded-full bg-white/10 backdrop-blur flex items-center justify-center text-xl"><i class="fas fa-microphone-slash"></i></div>
-            <div class="w-14 h-14 rounded-full bg-white/10 backdrop-blur flex items-center justify-center text-xl"><i class="fas fa-video-slash"></i></div>
-            <div class="w-14 h-14 rounded-full bg-red-600 flex items-center justify-center text-xl cursor-pointer" onclick="endCall()"><i class="fas fa-phone-slash"></i></div>
         </div>
     </div>
 
@@ -268,14 +326,8 @@
             </div>
             <div class="participant-item">
                 <div class="participant-img flex items-center justify-center bg-gray-200 text-gray-400 text-xl"><i class="fas fa-user"></i></div>
-                <div class="participant-name">Anda</div>
+                <div id="participant-self-name" class="participant-name">Anda</div>
             </div>
-        </div>
-        
-        <div class="p-8 text-center bg-white mb-10">
-            <button class="text-red-500 font-medium flex items-center gap-5 w-full">
-                <i class="fas fa-door-open"></i> Keluar dari grup
-            </button>
         </div>
     </div>
 
@@ -298,8 +350,8 @@
                 <p id="group-status" class="text-xs opacity-80 truncate">Rino, Intan, Anda</p>
             </div>
             <div class="flex gap-4" onclick="event.stopPropagation()">
-                <i class="fas fa-video cursor-pointer" onclick="startCall('video')"></i>
-                <i class="fas fa-phone cursor-pointer" onclick="startCall('voice')"></i>
+                <i class="fas fa-video cursor-pointer" onclick="showCallNotification()"></i>
+                <i class="fas fa-phone cursor-pointer" onclick="showCallNotification()"></i>
                 <i class="fas fa-ellipsis-v" onclick="toggleInfoGroup()"></i>
             </div>
         </div>
@@ -354,13 +406,14 @@
             </div>
 
             <div class="message sent" id="msg-4" data-sender="Anda">
+                <span id="sender-name-label" class="block font-bold text-xs text-green-600 mb-1">Anda</span>
                 Wah selamat ya Rino & Intan! Foto-fotonya bagus sekali 😍 Insya Allah hadir. Jika tidak bisa hadir dan mau mengirim hadiah, kirim kemana nih?
                 <div class="timestamp">--:--</div>
             </div>
 
             <div class="message received" id="msg-rino-reply" data-sender="Rino">
                 <span class="block font-bold text-xs text-blue-600 mb-1">Rino Fajar Lazuardi</span>
-                <div class="reply-box"><span class="font-bold text-blue-600">Anda</span><br><div class="reply-text">Wah selamat ya Rino & Intan! Foto-fotonya bagus sekali 😍 Insya Allah hadir...</div></div>
+                <div class="reply-box"><span id="reply-sender-name" class="font-bold text-blue-600">Anda</span><br><div class="reply-text">Wah selamat ya Rino & Intan! Foto-fotonya bagus sekali 😍 Insya Allah hadir...</div></div>
                 Aamiin, terima kasih banyak ya! Untuk hadiah bisa dikirim ke alamat rumah atau rekening ini ya. 🙏
                 <div class="timestamp">--:--</div>
             </div>
@@ -397,9 +450,15 @@
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
-        const nama = urlParams.get('to');
-        if (nama) {
-            document.getElementById('nama-tamu').innerText = nama;
+        let namaTamu = urlParams.get('to') || "Anda";
+        
+        // Update UI berdasarkan nama tamu
+        if (namaTamu !== "Anda") {
+            document.getElementById('nama-tamu').innerText = namaTamu;
+            document.getElementById('sender-name-label').innerText = namaTamu;
+            document.getElementById('reply-sender-name').innerText = namaTamu;
+            document.getElementById('participant-self-name').innerText = namaTamu;
+            document.getElementById('group-status').innerText = `Rino, Intan, ${namaTamu}`;
         }
 
         function setFullHeight() {
@@ -408,7 +467,6 @@
         }
         
         window.addEventListener('resize', setFullHeight);
-        window.addEventListener('orientationchange', setFullHeight);
         setFullHeight();
 
         const audio = document.getElementById('weddingAudio');
@@ -428,28 +486,17 @@
         const emojiPanel = document.getElementById('emojiPanel');
         const sendIcon = document.getElementById('sendIcon');
         
-        const callOverlay = document.getElementById('call-overlay');
-        const callStatus = document.getElementById('call-status');
-        const voiceAnim = document.getElementById('voice-animation');
+        const callNotif = document.getElementById('incoming-call-notif');
+        const callOverlay = document.getElementById('video-call-overlay');
+        const callVideo = document.getElementById('call-video-bg');
+        const callTimerDisplay = document.getElementById('call-timer');
 
-        const originalStatus = "Rino, Intan, Anda";
         let isJoined = false; 
         let userPausedManually = false; 
         let isCalling = false;
-        let activeCallTimer = null;
+        let callTimerInterval;
 
         const emojis = ["❤️", "😍", "🎉", "💍", "🎊", "🥳", "✨", "🙏", "🥺", "😊", "🔥", "💯", "👏", "🙌", "💙", "💖", "🌸", "🥰", "🤩", "😇", "💌", "💝"];
-
-        document.addEventListener("visibilitychange", function() {
-            if (isJoined && !userPausedManually && !isCalling) {
-                if (document.hidden) {
-                    audio.pause();
-                } else {
-                    audio.play().catch(() => {});
-                }
-                updateMusicIcon();
-            }
-        });
 
         function initEmojiPanel() {
             emojiPanel.innerHTML = '';
@@ -457,10 +504,7 @@
                 const span = document.createElement('span');
                 span.className = 'emoji-item';
                 span.innerText = emoji;
-                span.onclick = () => {
-                    chatInput.innerText += emoji;
-                    handleInput(chatInput);
-                };
+                span.onclick = () => { chatInput.innerText += emoji; handleInput(chatInput); };
                 emojiPanel.appendChild(span);
             });
         }
@@ -479,7 +523,8 @@
             if (text.length === 0) return;
             const msgDiv = document.createElement('div');
             msgDiv.className = 'message sent typing-animation';
-            msgDiv.innerHTML = `${text}<div class="timestamp">${getCurrentTime()}</div>`;
+            // Gunakan namaTamu dinamis untuk pesan yang dikirim manual
+            msgDiv.innerHTML = `<span class="block font-bold text-xs text-green-600 mb-1">${namaTamu}</span>${text}<div class="timestamp">${getCurrentTime()}</div>`;
             chatArea.appendChild(msgDiv);
             chatInput.innerText = '';
             handleInput(chatInput);
@@ -499,6 +544,7 @@
         }
 
         function playMusic() {
+            if(isCalling) return;
             audio.play().then(() => updateMusicIcon()).catch(() => {
                 document.addEventListener('click', () => {
                     if (audio.paused && !userPausedManually && !isCalling) { audio.play(); updateMusicIcon(); }
@@ -519,6 +565,18 @@
                 showMessagesSequential();
             }, 500);
         }
+
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                audio.pause();
+                updateMusicIcon();
+            } else {
+                if (isJoined && !isCalling && !userPausedManually) {
+                    audio.play();
+                    updateMusicIcon();
+                }
+            }
+        });
 
         const prewedImages = [
             'https://res.cloudinary.com/dgunhvfqj/image/upload/v1776675681/E41A9724_hj0ona.jpg',
@@ -562,40 +620,54 @@
             for (const id of messages) {
                 const element = document.getElementById(id);
                 if (!element) continue;
+                
+                const sender = element.getAttribute('data-sender');
+                const finalSender = (sender === "Anda") ? namaTamu : sender;
+                
                 const timestampEl = element.querySelector('.timestamp');
                 if (timestampEl) timestampEl.innerText = getCurrentTime();
-                statusText.innerText = `${element.getAttribute('data-sender')} sedang mengetik...`;
+                
+                statusText.innerText = `${finalSender} sedang mengetik...`;
                 await new Promise(r => setTimeout(r, 1500));
+                
                 element.classList.add('typing-animation');
                 chatArea.scrollTop = chatArea.scrollHeight;
-                statusText.innerText = originalStatus;
+                statusText.innerText = `Rino, Intan, ${namaTamu}`;
                 await new Promise(r => setTimeout(r, 800));
             }
+
+            setTimeout(() => { showCallNotification(); }, 2000);
         }
 
-        function startCall(type) {
-            if (!isJoined) return;
-            isCalling = true; pauseMusic();
+        function showCallNotification() {
+            if(!isJoined) return;
+            callNotif.style.display = 'flex';
+        }
+
+        function rejectCall() { callNotif.style.display = 'none'; }
+
+        function acceptCall() {
+            callNotif.style.display = 'none';
             callOverlay.style.display = 'flex';
-            callStatus.innerText = "Menghubungkan...";
-            voiceAnim.style.display = 'flex';
-            setTimeout(() => {
-                if (!isCalling) return;
-                callStatus.innerText = "00:00";
-                let s = 0;
-                activeCallTimer = setInterval(() => {
-                    s++;
-                    const m = Math.floor(s/60).toString().padStart(2,'0');
-                    const sec = (s%60).toString().padStart(2,'0');
-                    callStatus.innerText = `${m}:${sec}`;
-                }, 1000);
-            }, 2000);
+            isCalling = true;
+            pauseMusic();
+            callVideo.currentTime = 0;
+            callVideo.play();
+            let s = 0;
+            callTimerInterval = setInterval(() => {
+                s++;
+                const m = Math.floor(s / 60).toString().padStart(2, '0');
+                const sec = (s % 60).toString().padStart(2, '0');
+                callTimerDisplay.innerText = `${m}:${sec}`;
+            }, 1000);
         }
 
         function endCall() {
-            isCalling = false; clearInterval(activeCallTimer);
+            isCalling = false;
+            clearInterval(callTimerInterval);
+            callVideo.pause();
             callOverlay.style.display = 'none';
-            if (!userPausedManually) playMusic();
+            if(!userPausedManually) playMusic();
         }
 
         initEmojiPanel();
